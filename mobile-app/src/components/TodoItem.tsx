@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
-import { Todo } from '../hooks/useTodos';
+import { Todo } from '../types/todo';
 import { Palette } from '../theme/index';
 
 interface TodoItemProps {

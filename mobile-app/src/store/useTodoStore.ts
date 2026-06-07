@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type FilterType = 'all' | 'pending' | 'completed';
+export type FilterType = 'pending' | 'completed';
 
 interface TodoUIState {
   filter: FilterType;
@@ -11,12 +11,12 @@ interface TodoUIState {
 }
 
 export const useTodoStore = create<TodoUIState>((set) => ({
-  filter: 'all',
+  filter: 'pending',
   selectedTodoId: null,
   
   setFilter: (filter) => set({ filter }),
   
   setSelectedTodoId: (id) => set({ selectedTodoId: id }),
   
-  resetUIState: () => set({ filter: 'all', selectedTodoId: null }),
+  resetUIState: () => set({ filter: 'pending', selectedTodoId: null }),
 }));

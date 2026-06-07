@@ -16,21 +16,22 @@ export default function RootLayout() {
           headerTintColor: '#000000',
         }}
       >
+        {/* Your primary welcome or landing screen */}
         <Stack.Screen 
           name="index" 
           options={{ headerShown: false }} 
         />
+
+        {/* Your new main task workspace screen (todo/index.tsx) */}
         <Stack.Screen 
-          name="todos" 
-          options={{ title: 'Tasks', headerLeft: () => null }} 
+          name="todo/index" 
+          options={{ headerShown: false }} 
         />
-        <Stack.Screen 
-          name="manage" 
-          options={{ presentation: 'modal', title: 'Manage Task' }} 
-        />
+
+        {/* Catch-all route definition for task fallback actions if needed */}
         <Stack.Screen 
           name="todo/[id]" 
-          options={{ title: 'Details' }} 
+          options={{ title: 'Details', headerShown: false }} 
         />
       </Stack>
     </QueryClientProvider>

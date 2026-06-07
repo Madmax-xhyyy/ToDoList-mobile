@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, View, Text, Pressable, SafeAreaView } from 'react-native';
-import { useRouter, Href } from 'expo-router';
-import { Palette } from '../theme';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Palette, Typography } from '../theme';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -9,101 +10,88 @@ export default function WelcomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* Decorative Minimalist Geometric Logo Mark */}
-        <View style={styles.logoContainer}>
-          <View style={styles.logoSquare}>
-            <Text style={styles.logoText}>✓</Text>
-          </View>
+        <View style={styles.logoCircle}>
+          <Text style={styles.logoText}>✓</Text>
         </View>
 
-        {/* Hero Copy Block */}
-        <View style={styles.textContainer}>
-          <Text style={styles.heroTitle}>Focus on what{'\n'}matters most.</Text>
-          <Text style={styles.heroSubtitle}>
-            A distraction-free workflow tailored for high-output engineers and deep-work sessions.
-          </Text>
-        </View>
+        <Text style={styles.title}>Simplify Your Day</Text>
+        <Text style={styles.subtitle}>
+          A minimal space designed to help you capture tasks, stay organized, and clear your mind.
+        </Text>
       </View>
 
-      {/* Persistent Call-to-Action Bar */}
-      <View style={styles.footer}>
-        <Pressable 
-          style={styles.primaryButton} 
-          onPress={() => router.push('/todos' as Href)}
-        >
-          <Text style={styles.buttonText}>Get Started</Text>
-        </Pressable>
-        <Text style={styles.versionText}>Production Build v1.0.0</Text>
-      </View>
+      <TouchableOpacity 
+        style={styles.startButton} 
+        onPress={() => router.push('/todo')} 
+        activeOpacity={0.8}
+      >
+        <Text style={styles.startButtonText}>Get Started</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Palette.background,
+  container: { 
+    flex: 1, 
+    backgroundColor: Palette.surface, 
+    paddingHorizontal: 24, 
+    justifyContent: 'space-between', 
+    paddingBottom: 20 
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 32,
+  content: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    paddingHorizontal: 12 
   },
-  logoContainer: {
-    marginBottom: 40,
-  },
-  logoSquare: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    backgroundColor: Palette.accent,
-    justifyContent: 'center',
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Palette.accent, 
     alignItems: 'center',
-    boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.1)',
+    justifyContent: 'center',
+    marginBottom: 32,
+    elevation: 4, // Keep for Android native shadow support
+    boxShadow: `0px 6px 10px rgba(251, 191, 36, 0.2)`, // Combined shadow styles (using a generic hex opacity overlay or Palette token hex if it supports it)
   },
-  logoText: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '600',
+  logoText: { 
+    color: Palette.textPrimary, 
+    fontSize: 36, 
+    fontWeight: 'bold' 
   },
-  textContainer: {
-    gap: 16,
+  title: { 
+    fontSize: 32, 
+    fontWeight: '800', 
+    color: Palette.textPrimary, 
+    textAlign: 'center', 
+    marginBottom: 16, 
+    ...Typography.fontSans, 
+    letterSpacing: -0.5,
   },
-  heroTitle: {
-    fontSize: 40,
+  subtitle: { 
+    fontSize: 16, 
+    color: Palette.textSecondary, 
+    textAlign: 'center', 
+    lineHeight: 24, 
+    paddingHorizontal: 10,
+    ...Typography.fontSans
+  },
+  startButton: {
+    backgroundColor: Palette.accent, 
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3, // Keep for Android native shadow support
+    marginBottom: 12,
+    boxShadow: `0px 4px 8px rgba(251, 191, 36, 0.3)`, // Clean cross-platform shadow string syntax
+  },
+  startButtonText: { 
+    color: Palette.textPrimary, 
+    fontSize: 16, 
     fontWeight: '700',
-    color: Palette.textPrimary,
-    letterSpacing: -1.2,
-    lineHeight: 48,
-  },
-  heroSubtitle: {
-    fontSize: 16,
-    color: Palette.textSecondary,
-    lineHeight: 24,
-    maxWidth: 300,
-  },
-  footer: {
-    paddingHorizontal: 32,
-    paddingBottom: 24,
-    gap: 16,
-  },
-  primaryButton: {
-    backgroundColor: Palette.accent,
-    borderRadius: 16,
-    paddingVertical: 18,
-    alignItems: 'center',
-    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-  },
-  versionText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: Palette.textMuted,
-    letterSpacing: 0.5,
-  },
+    ...Typography.fontSans
+  }
 });
