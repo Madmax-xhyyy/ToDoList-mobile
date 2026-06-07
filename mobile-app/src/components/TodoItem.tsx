@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { Todo } from '../types/todo';
 import { Palette } from '../theme/index';
+import { Ionicons } from '@expo/vector-icons'; // 👈 Using this imported package now!
 
 interface TodoItemProps {
   todo: Todo;
@@ -30,8 +31,17 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onPress, onD
         </View>
       </Pressable>
 
-      <Pressable style={styles.deleteButton} onPress={onDelete}>
-        <Text style={styles.deleteText}>✕</Text>
+      {/* 🗑️ Swapped out plain text for Ionicons and added hitSlop for a wider touch target */}
+      <Pressable 
+        style={styles.deleteButton} 
+        onPress={onDelete}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      >
+        <Ionicons 
+          name="trash-outline" 
+          size={18} 
+          color={todo.isCompleted ? Palette.textMuted : '#EF4444'} 
+        />
       </Pressable>
     </View>
   );
@@ -93,10 +103,8 @@ const styles = StyleSheet.create({
     color: Palette.textMuted,
   },
   deleteButton: {
-    padding: 8,
-  },
-  deleteText: {
-    color: Palette.textMuted,
-    fontSize: 14,
+    padding: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

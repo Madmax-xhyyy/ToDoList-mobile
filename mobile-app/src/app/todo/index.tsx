@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { StyleSheet, View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
@@ -6,6 +6,7 @@ import { useTodos, useTodoMutations } from '../../hooks/useTodos';
 import { TodoItem } from '../../components/TodoItem';
 import { TodoFormModal } from '../../components/TodoForm'; 
 import { TodoDetailsModal } from '../../components/TodoDetailsModal';
+import { DeleteConfirmationModal } from '../../components/DeleteConfirmationModal';
 import { useTodoStore } from '../../store/useTodoStore';
 import { Palette, Typography } from '../../theme';
 import { Todo } from '../../types/todo';
@@ -15,9 +16,17 @@ export default function TodoListScreen() {
   const { updateTodo, deleteTodo, createTodo, isCreating } = useTodoMutations();
   const { filter, setFilter } = useTodoStore();
   
+  // UI Visibility States
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  // Data Context States
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
+  const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
+
+  // 🛠️ State Machine Queue: Houses transit tasks waiting for the details modal to unmount
+  const [pendingEditTodo, setPendingEditTodo] = useState<Todo | null>(null);
 
   const filteredTodos = useMemo(() => {
     if (!todos) return [];
@@ -33,29 +42,73 @@ export default function TodoListScreen() {
     return todos.filter((t) => !t.isCompleted).length;
   }, [todos]);
 
-  const handleCreateTodo = async (title: string, description: string) => {
+  // 🛠️ Lifecycle Watcher: Acts as a native traffic controller
+  useEffect(() => {
+    if (!isDetailsOpen && pendingEditTodo) {
+      setSelectedTodo(pendingEditTodo); // Handover the target to form focus context
+      setIsFormOpen(true);              // Fire modal open signal safely
+      setPendingEditTodo(null);         // Flush layout transit queue
+    }
+  }, [isDetailsOpen, pendingEditTodo]);
+
+  const handleSaveTodo = async (title: string, description: string) => {
     try {
-      await createTodo({ title, description: description || undefined });
+      if (selectedTodo) {
+        await updateTodo({ 
+          id: selectedTodo.id, 
+          data: { title, description: description || undefined } 
+        });
+      } else {
+        await createTodo({ title, description: description || undefined });
+      }
       setIsFormOpen(false);
+      setSelectedTodo(null);
     } catch (error) {
       console.error(error);
     }
   };
 
-  // Triggers context drawer focus cleanly without utilizing layout router pushes
+  const handleOpenCreateModal = () => {
+    setSelectedTodo(null); 
+    setIsFormOpen(true);
+  };
+
   const handleViewDetails = useCallback((todo: Todo) => {
     setSelectedTodo(todo);
     setIsDetailsOpen(true);
   }, []);
 
+  // 🛠️ Seamless state machine handler replaces artificial timeouts
+  const handleTransitionToEdit = useCallback((todo: Todo) => {
+    setPendingEditTodo(todo); // Register todo context inside safe placeholder queue
+    setIsDetailsOpen(false);   // Trigger detail exit animation sequence natively
+  }, []);
+
+  const handleTriggerDeletePrompt = useCallback((todo: Todo) => {
+    setTodoToDelete(todo);
+    setIsDeleteOpen(true);
+  }, []);
+
+  const handleConfirmDelete = async () => {
+    if (todoToDelete) {
+      try {
+        await deleteTodo(todoToDelete.id);
+        setIsDeleteOpen(false);
+        setTodoToDelete(null);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
   const renderTodoItem = useCallback(({ item }: { item: Todo }) => (
     <TodoItem
       todo={item}
       onToggle={() => updateTodo({ id: item.id, data: { isCompleted: !item.isCompleted } })}
-      onDelete={() => deleteTodo(item.id)}
-      onPress={() => handleViewDetails(item)} // Replaced dynamic route link with modal hook handler
+      onDelete={() => handleTriggerDeletePrompt(item)}
+      onPress={() => handleViewDetails(item)}
     />
-  ), [updateTodo, deleteTodo, handleViewDetails]);
+  ), [updateTodo, handleTriggerDeletePrompt, handleViewDetails]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -74,7 +127,7 @@ export default function TodoListScreen() {
       <View style={styles.actionContainer}>
         <TouchableOpacity 
           style={styles.topAddButton} 
-          onPress={() => setIsFormOpen(true)} 
+          onPress={handleOpenCreateModal} 
           activeOpacity={0.8}
         >
           <Text style={styles.topAddButtonText}>＋ Add a New Task</Text>
@@ -119,11 +172,15 @@ export default function TodoListScreen() {
         />
       )}
 
-      {/* Creation Modal View Context */}
+      {/* Creation/Editing Modal Context */}
       <TodoFormModal
         isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSave={handleCreateTodo}
+        todo={selectedTodo} 
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedTodo(null);
+        }}
+        onSave={handleSaveTodo}
         isSaving={isCreating}
       />
 
@@ -133,9 +190,23 @@ export default function TodoListScreen() {
         isOpen={isDetailsOpen}
         onClose={() => {
           setIsDetailsOpen(false);
-          setSelectedTodo(null);
+          // Protect selectedTodo data context if an active transition queue loop is running
+          if (!pendingEditTodo) {
+            setSelectedTodo(null);
+          }
         }}
-        onDelete={deleteTodo}
+        onEdit={handleTransitionToEdit} 
+      />
+
+      {/* Delete Confirmation Dialog Context */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteOpen}
+        title={todoToDelete?.title || ''}
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setTodoToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
       />
     </SafeAreaView>
   );
@@ -154,7 +225,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'center', 
     elevation: 3, 
-    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.08)' // Fixed deprecated shadow properties
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.08)' 
   },
   topAddButtonText: { ...Typography.fontSans, color: Palette.textPrimary, fontSize: 15, fontWeight: '700' },
   filterContainer: { paddingHorizontal: 24, marginTop: 16, marginBottom: 20 },
@@ -163,7 +234,7 @@ const styles = StyleSheet.create({
   segmentSegmentActive: { 
     backgroundColor: Palette.surface, 
     elevation: 2, 
-    boxShadow: '0px 2px 4px rgba(15, 23, 42, 0.06)' // Fixed deprecated shadow properties
+    boxShadow: '0px 2px 4px rgba(15, 23, 42, 0.06)' 
   },
   filterText: { ...Typography.fontSans, fontSize: 13, fontWeight: '600', color: Palette.textSecondary },
   filterTextActive: { color: Palette.textPrimary },

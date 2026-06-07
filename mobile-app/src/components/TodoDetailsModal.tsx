@@ -2,19 +2,20 @@ import React from 'react';
 import { StyleSheet, View, Text, Pressable, TouchableOpacity, Modal } from 'react-native';
 import { Palette, Typography } from '../theme';
 import { Todo } from '../types/todo';
+import { Ionicons } from '@expo/vector-icons';
 
 interface TodoDetailsModalProps {
   todo: Todo | null;
   isOpen: boolean;
   onClose: () => void;
-  onDelete: (id: string) => void;
+  onEdit: (todo: Todo) => void;
 }
 
-export function TodoDetailsModal({ todo, isOpen, onClose, onDelete }: TodoDetailsModalProps) {
+export function TodoDetailsModal({ todo, isOpen, onClose, onEdit }: TodoDetailsModalProps) {
   if (!todo) return null;
 
-  const handleDelete = () => {
-    onDelete(todo.id);
+  const handleEditClick = () => {
+    onEdit(todo);
     onClose();
   };
 
@@ -24,9 +25,13 @@ export function TodoDetailsModal({ todo, isOpen, onClose, onDelete }: TodoDetail
       animationType="slide"
       transparent={true}
       onRequestClose={onClose}
+      accessibilityViewIsModal={true}
+      aria-modal={true} // 👈 Fixed strict type casting
     >
       <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.modalContent}>
+        <Pressable style={styles.modalContent} pointerEvents="auto">
+          
+          {/* Header layout using clean typography grouping instead of full dividing lines */}
           <View style={styles.modalHeader}>
             <View style={styles.statusBadgeContainer}>
               <View style={[styles.statusDot, todo.isCompleted && styles.statusDotCompleted]} />
@@ -34,8 +39,11 @@ export function TodoDetailsModal({ todo, isOpen, onClose, onDelete }: TodoDetail
                 {todo.isCompleted ? 'Completed' : 'In Progress'}
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeButtonText}>Close</Text>
+            <TouchableOpacity 
+              onPress={onClose}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Ionicons name="close" size={22} color={Palette.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -44,15 +52,16 @@ export function TodoDetailsModal({ todo, isOpen, onClose, onDelete }: TodoDetail
             
             <Text style={styles.label}>Description</Text>
             <Text style={[styles.taskDescription, !todo.description && styles.taskDescriptionEmpty]}>
-              {todo.description || 'No additional description provided for this task.'}
+              {todo.description || 'No additional details provided for this task.'}
             </Text>
 
+            {/* Solid accent button layout to blend smoothly with your main list components */}
             <TouchableOpacity 
-              style={styles.deleteButton} 
-              onPress={handleDelete}
+              style={styles.editButton} 
+              onPress={handleEditClick}
               activeOpacity={0.8}
             >
-              <Text style={styles.deleteButtonText}>Delete Task</Text>
+              <Text style={styles.editButtonText}>Edit Details</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -64,39 +73,36 @@ export function TodoDetailsModal({ todo, isOpen, onClose, onDelete }: TodoDetail
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(30, 27, 75, 0.4)',
+    backgroundColor: 'rgba(15, 23, 42, 0.25)', // Softer modern dimming treatment
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: Palette.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingBottom: 40,
+    paddingBottom: 42,
     maxHeight: '80%',
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderColor: Palette.border,
+    paddingTop: 24,
+    paddingBottom: 12,
   },
   statusBadgeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFEAD8',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
   },
   statusDot: {
-    width: 8,
-    height: 8,
+    width: 7,
+    height: 7,
     borderRadius: 4,
     backgroundColor: '#F59E0B',
-    marginRight: 8,
+    marginRight: 6,
   },
   statusDotCompleted: {
     backgroundColor: '#10B981',
@@ -105,58 +111,57 @@ const styles = StyleSheet.create({
     ...Typography.fontSans,
     fontSize: 12,
     fontWeight: '700',
-    color: Palette.textPrimary,
+    color: Palette.textSecondary,
+    letterSpacing: 0.2,
     textTransform: 'uppercase',
   },
-  closeButtonText: {
-    ...Typography.fontSans,
-    fontSize: 15,
-    fontWeight: '600',
-    color: Palette.textSecondary,
-  },
   contentBody: {
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 8,
   },
   taskTitle: {
     ...Typography.fontSans,
     fontSize: 24,
     fontWeight: '800',
     color: Palette.textPrimary,
-    letterSpacing: -0.5,
-    marginBottom: 24,
+    letterSpacing: -0.6,
+    marginBottom: 20,
   },
   label: {
     ...Typography.fontSans,
-    fontSize: 12,
-    fontWeight: '600',
-    color: Palette.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    color: Palette.textMuted,
     textTransform: 'uppercase',
-    marginBottom: 8,
-    letterSpacing: -0.2,
+    marginBottom: 6,
+    letterSpacing: 0.5,
   },
   taskDescription: {
     ...Typography.fontSans,
     fontSize: 15,
     color: Palette.textPrimary,
     lineHeight: 22,
-    marginBottom: 32,
+    letterSpacing: -0.1,
+    marginBottom: 36,
   },
   taskDescriptionEmpty: {
     color: Palette.textMuted,
     fontStyle: 'italic',
   },
-  deleteButton: {
-    borderWidth: 1,
-    borderColor: '#EF4444',
+  editButton: {
+    backgroundColor: Palette.accent, // Filled with theme primary accent
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    elevation: 2,
+    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.04)',
   },
-  deleteButtonText: {
+  editButtonText: {
     ...Typography.fontSans,
-    color: '#EF4444',
-    fontWeight: '600',
+    color: Palette.textPrimary,
+    fontWeight: '700',
     fontSize: 15,
+    letterSpacing: -0.1,
   },
 });
