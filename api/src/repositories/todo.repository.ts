@@ -1,10 +1,14 @@
 import { Todo } from '../../generated/prisma/client';
 import prisma from '../prisma';
+import { BadRequestError } from '../utils/error';
 
 export function useTodoRepository() {
   async function create(title: string, description?: string): Promise<Todo> {
     return prisma.todo.create({
-      data: { title, description },
+      data: { 
+        title, 
+        description: description === "" ? null : description 
+      },
     });
   }
 
@@ -21,16 +25,24 @@ export function useTodoRepository() {
   }
 
   async function update(id: string, data: Partial<Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Todo> {
-    return prisma.todo.update({
-      where: { id },
-      data,
-    });
+    try {
+      return await prisma.todo.update({
+        where: { id },
+        data,
+      });
+    } catch (error: any) {
+      throw new BadRequestError(`Database validation failed: ${error.message}`);
+    }
   }
 
   async function deleteById(id: string): Promise<Todo> {
-    return prisma.todo.delete({
-      where: { id },
-    });
+    try {
+      return await prisma.todo.delete({
+        where: { id },
+      });
+    } catch (error: any) {
+      throw new BadRequestError(`Database deletion rejected: ${error.message}`);
+    }
   }
 
   return {

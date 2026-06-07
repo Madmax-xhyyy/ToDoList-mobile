@@ -9,7 +9,7 @@ export function useTodoService() {
     if (!title || title.trim() === '') {
       throw new BadRequestError('Title cannot be left empty.');
     }
-    return todoRepository.create(title.trim(), description?.trim());
+    return todoRepository.create(title.trim(), description?.trim() || "");
   }
 
   async function getAllTodos(): Promise<Todo[]> {
@@ -25,18 +25,31 @@ export function useTodoService() {
   }
 
   async function updateTodo(id: string, updates: { title?: string; description?: string; isCompleted?: boolean }): Promise<Todo> {
-    await getTodoById(id); // Validates existence, throws NotFoundError if missing
+    const existingTodo = await getTodoById(id); 
 
-    const dataToUpdate: Partial<Todo> = {};
+    const dataToUpdate: Partial<Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>> = {};
+    
     if (updates.title !== undefined) dataToUpdate.title = updates.title.trim();
-    if (updates.description !== undefined) dataToUpdate.description = updates.description.trim();
+    if (updates.description !== undefined) {
+  
+      dataToUpdate.description = updates.description.trim() === "" ? null : updates.description.trim();
+    }
     if (updates.isCompleted !== undefined) dataToUpdate.isCompleted = updates.isCompleted;
+
+
+    if (
+      (dataToUpdate.title === undefined || dataToUpdate.title === existingTodo.title) &&
+      (dataToUpdate.description === undefined || dataToUpdate.description === existingTodo.description) &&
+      (dataToUpdate.isCompleted === undefined || dataToUpdate.isCompleted === existingTodo.isCompleted)
+    ) {
+      return existingTodo; 
+    }
 
     return todoRepository.update(id, dataToUpdate);
   }
 
   async function deleteTodo(id: string): Promise<void> {
-    await getTodoById(id); // Validates existence
+    await getTodoById(id); 
     await todoRepository.deleteById(id);
   }
 
