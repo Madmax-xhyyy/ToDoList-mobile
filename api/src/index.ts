@@ -13,7 +13,6 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Just use 'dev' logging locally—it's clean, color-coded, and single-line!
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 } else {
