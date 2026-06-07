@@ -27,12 +27,6 @@ export default function RootLayout() {
           name="todo/index" 
           options={{ headerShown: false }} 
         />
-
-        {/* Catch-all route definition for task fallback actions if needed */}
-        <Stack.Screen 
-          name="todo/[id]" 
-          options={{ title: 'Details', headerShown: false }} 
-        />
       </Stack>
     </QueryClientProvider>
   );

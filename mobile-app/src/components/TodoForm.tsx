@@ -15,9 +15,11 @@ interface TodoFormModalProps {
 export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoFormModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [error, setError] = useState<string | null>(null); // 👈 Track validation messages
 
   useEffect(() => {
     if (isOpen) {
+      setError(null); // Clear errors whenever the modal pops open
       if (todo) {
         setTitle(todo.title);
         setDescription(todo.description || '');
@@ -28,19 +30,40 @@ export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoF
     }
   }, [isOpen, todo]);
 
+  // Clear validation warning state dynamically as the user types
+  const handleTitleChange = (text: string) => {
+    setTitle(text);
+    if (error && text.trim()) {
+      setError(null);
+    }
+  };
+
   const handleSave = async () => {
     const trimmedTitle = title.trim();
-    if (!trimmedTitle || isSaving) return;
+    
+    // Validation check: prevent execution if title is blank
+    if (!trimmedTitle) {
+      setError('Task title is required');
+      return;
+    }
 
-    await onSave(trimmedTitle, description.trim());
-    setTitle('');
-    setDescription('');
+    if (isSaving) return;
+
+    try {
+      await onSave(trimmedTitle, description.trim());
+      setTitle('');
+      setDescription('');
+      setError(null);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleClose = () => {
     if (isSaving) return;
     setTitle('');
     setDescription('');
+    setError(null); // Clean error state on drop closure
     onClose();
   };
 
@@ -56,7 +79,6 @@ export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoF
       <Pressable style={styles.modalOverlay} onPress={handleClose}>
         <Pressable style={styles.modalContent} pointerEvents="auto">
           
-          {/* Minimalist header focusing on typography and integrated spacing */}
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{todo ? 'Edit Task' : 'New Task'}</Text>
             <TouchableOpacity 
@@ -71,13 +93,20 @@ export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoF
           <View style={styles.form}>
             <Text style={styles.label}>Task Title</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input, 
+                error ? styles.inputError : null, // 👈 Applies crimson border on validation failure
+                { marginBottom: error ? 8 : 24 } // Tighten base margin if validation subtext displays
+              ]}
               placeholder="What needs to be done?"
               placeholderTextColor={Palette.textMuted}
               value={title}
-              onChangeText={setTitle}
+              onChangeText={handleTitleChange}
               editable={!isSaving}
             />
+            
+            {/* Inline validation feedback component */}
+            {error && <Text style={styles.errorText}>{error}</Text>}
 
             <Text style={styles.label}>Description</Text>
             <TextInput
@@ -116,7 +145,7 @@ export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoF
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.25)', // Smooth ambient background dim matching the design framework
+    backgroundColor: 'rgba(15, 23, 42, 0.25)', 
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -166,12 +195,23 @@ const styles = StyleSheet.create({
     paddingVertical: 14, 
     fontSize: 15, 
     color: Palette.textPrimary, 
-    marginBottom: 24,
     letterSpacing: -0.1,
+  },
+  inputError: {
+    borderColor: '#DC2626', // Premium matte red outline accentuation
+  },
+  errorText: {
+    ...Typography.fontSans,
+    color: '#DC2626',
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 16,
+    paddingLeft: 4,
   },
   textArea: { 
     height: 100, 
     paddingTop: 14,
+    marginBottom: 24,
   },
   saveButton: { 
     backgroundColor: Palette.accent, 
