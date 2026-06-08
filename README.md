@@ -37,35 +37,36 @@ A strongly typed Node.js REST Engine using Express compiled with modern ECMAScri
 ---
 
 ## 📂 Structural Blueprint
-
-📦 project-root
-├── 📂 api/                          # BACKEND ENGINE (Express + Prisma)
-│   ├── 📂 prisma/                   # Database configurations
-│   │   ├── 📂 migrations/           # Incremental SQL migration baselines
-│   │   └── 📄 schema.prisma         # Data models definitions & structural definitions
-│   ├── 📂 src/
-│   │   ├── 📂 controllers/          # HTTP request-response handlers & routing endpoints
-│   │   ├── 📂 repositories/         # Isolated database data abstraction queries
-│   │   ├── 📂 routes/               # Express routing path mapping
-│   │   ├── 📂 services/             # Core business logical pipelines & functional steps
-│   │   ├── 📂 utils/                # Error handling middlewares & logger engines
-│   │   ├── 📄 index.ts              # API Entry Point & middleware attachment
-│   │   └── 📄 prisma.ts             # Prisma Client instance singletons
-│   ├── 📄 combined.log              # Persistent operation streams
-│   └── 📄 error.log                 # Critical system error log captures
-│
-└── 📂 mobile-app/                   # FRONTEND APPLICATION (Expo Native)
-├── 📂 src/
-│   ├── 📂 app/                  # File-Based Router Tree context
-│   │   └── 📂 todo/             # Task workflow scope paths
-│   │       ├── 📄 _layout.tsx   # Stack Navigator and subview orchestration
-│   │       └── 📄 index.tsx     # Main application dashboard workspace
-│   ├── 📂 components/           # UI Atoms (Modals, TodoItem, Inputs)
-│   ├── 📂 hooks/                # Custom React Query mutation integrations (useTodos.ts)
-│   ├── 📂 store/                # Zustand global slices (useUiStore.ts)
-│   ├── 📂 theme/                # Style tokens matrix (Palette & Typography mappings)
-│   └── 📂 types/                # Strict TypeScript global data definitions
-
+      ```text
+      📦 project-root
+      ├── 📂 api/                          # BACKEND ENGINE (Express + Prisma)
+      │   ├── 📂 prisma/                   # Database configurations
+      │   │   ├── 📂 migrations/           # Incremental SQL migration baselines
+      │   │   └── 📄 schema.prisma         # Data models definitions & structural definitions
+      │   ├── 📂 src/
+      │   │   ├── 📂 controllers/          # HTTP request-response handlers & routing endpoints
+      │   │   ├── 📂 repositories/         # Isolated database data abstraction queries
+      │   │   ├── 📂 routes/               # Express routing path mapping
+      │   │   ├── 📂 services/             # Core business logical pipelines & functional steps
+      │   │   ├── 📂 utils/                # Error handling middlewares & logger engines
+      │   │   ├── 📄 index.ts              # API Entry Point & middleware attachment
+      │   │   └── 📄 prisma.ts             # Prisma Client instance singletons
+      │   ├── 📄 combined.log              # Persistent operation streams
+      │   └── 📄 error.log                 # Critical system error log captures
+      │
+      └── 📂 mobile-app/                   # FRONTEND APPLICATION (Expo Native)
+          ├── 📂 src/
+          │   ├── 📂 app/                  # File-Based Router Tree context
+          │   │   └── 📂 todo/             # Task workflow scope paths
+          │   │       ├── 📄 _layout.tsx   # Stack Navigator and subview orchestration
+          │   │       └── 📄 index.tsx     # Main application dashboard workspace
+          │   ├── 📂 components/           # UI Atoms (Modals, TodoItem, Inputs)
+          │   ├── 📂 hooks/                # Custom React Query mutation integrations
+          │   ├── 📂 lib/                  # Shared core configuration libraries (Axios instances)
+          │   ├── 📂 services/             # API network interface operations
+          │   ├── 📂 store/                # Zustand global slices
+          │   ├── 📂 theme/                # Style tokens matrix (Palette & Typography mappings)
+          │   └── 📂 types/                # Strict TypeScript global data definitions
 ---
 
 ## 💻 Local Installation & Workspace Setup
