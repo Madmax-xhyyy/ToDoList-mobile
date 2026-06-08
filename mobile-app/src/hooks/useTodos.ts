@@ -3,9 +3,8 @@ import { todoService } from '../services/todoService';
 import { CreateTodoInput, UpdateTodoInput } from '../types/todo';
 import { Alert } from 'react-native';
 
-const TODO_QUERY_KEY = ['index'] as const;
+const TODO_QUERY_KEY = ['todos'] as const;
 
-// Fetch Hook
 export const useTodos = () => {
   return useQuery({
     queryKey: TODO_QUERY_KEY,
@@ -13,22 +12,23 @@ export const useTodos = () => {
   });
 };
 
-// Mutations Hook
-export const useTodoMutations = () => {
+export const useCreateTodo = () => {
   const queryClient = useQueryClient();
-
-  const createMutation = useMutation({
+  return useMutation({
     mutationFn: (newTodo: CreateTodoInput) => todoService.create(newTodo),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TODO_QUERY_KEY });
     },
     onError: (error) => {
-      Alert.alert('Error', 'Failed to create todo. Please try again.');
+      Alert.alert('Error', 'Failed to create todo.');
       console.error(error);
     },
   });
+};
 
-  const updateMutation = useMutation({
+export const useUpdateTodo = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateTodoInput }) =>
       todoService.update(id, data),
     onSuccess: () => {
@@ -39,8 +39,11 @@ export const useTodoMutations = () => {
       console.error(error);
     },
   });
+};
 
-  const deleteMutation = useMutation({
+export const useDeleteTodo = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: (id: string) => todoService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TODO_QUERY_KEY });
@@ -50,13 +53,4 @@ export const useTodoMutations = () => {
       console.error(error);
     },
   });
-
-  return {
-    createTodo: createMutation.mutateAsync,
-    updateTodo: updateMutation.mutateAsync,
-    deleteTodo: deleteMutation.mutateAsync,
-    isCreating: createMutation.isPending,
-    isUpdating: updateMutation.isPending,
-    isDeleting: deleteMutation.isPending,
-  };
 };

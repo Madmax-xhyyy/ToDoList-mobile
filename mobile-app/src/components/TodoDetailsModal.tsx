@@ -26,12 +26,11 @@ export function TodoDetailsModal({ todo, isOpen, onClose, onEdit }: TodoDetailsM
       transparent={true}
       onRequestClose={onClose}
       accessibilityViewIsModal={true}
-      aria-modal={true} // 👈 Fixed strict type casting
+      aria-modal={true}
     >
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <Pressable style={styles.modalContent} pointerEvents="auto">
           
-          {/* Header layout using clean typography grouping instead of full dividing lines */}
           <View style={styles.modalHeader}>
             <View style={styles.statusBadgeContainer}>
               <View style={[styles.statusDot, todo.isCompleted && styles.statusDotCompleted]} />
@@ -55,7 +54,6 @@ export function TodoDetailsModal({ todo, isOpen, onClose, onEdit }: TodoDetailsM
               {todo.description || 'No additional details provided for this task.'}
             </Text>
 
-            {/* Solid accent button layout to blend smoothly with your main list components */}
             <TouchableOpacity 
               style={styles.editButton} 
               onPress={handleEditClick}
@@ -73,7 +71,7 @@ export function TodoDetailsModal({ todo, isOpen, onClose, onEdit }: TodoDetailsM
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.25)', // Softer modern dimming treatment
+    backgroundColor: 'rgba(15, 23, 42, 0.25)', 
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -149,7 +147,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   editButton: {
-    backgroundColor: Palette.accent, // Filled with theme primary accent
+    backgroundColor: Palette.accent, 
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',

@@ -8,18 +8,18 @@ interface TodoFormModalProps {
   isOpen: boolean;
   todo: Todo | null;
   onClose: () => void;
-  onSave: (title: string, description: string) => Promise<void>;
+  onSave: (title: string, description: string) => void; // 👈 Updated from Promise<void> to void
   isSaving: boolean;
 }
 
 export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoFormModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [error, setError] = useState<string | null>(null); // 👈 Track validation messages
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setError(null); // Clear errors whenever the modal pops open
+      setError(null);
       if (todo) {
         setTitle(todo.title);
         setDescription(todo.description || '');
@@ -30,7 +30,6 @@ export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoF
     }
   }, [isOpen, todo]);
 
-  // Clear validation warning state dynamically as the user types
   const handleTitleChange = (text: string) => {
     setTitle(text);
     if (error && text.trim()) {
@@ -38,10 +37,9 @@ export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoF
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     const trimmedTitle = title.trim();
     
-    // Validation check: prevent execution if title is blank
     if (!trimmedTitle) {
       setError('Task title is required');
       return;
@@ -49,21 +47,18 @@ export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoF
 
     if (isSaving) return;
 
-    try {
-      await onSave(trimmedTitle, description.trim());
-      setTitle('');
-      setDescription('');
-      setError(null);
-    } catch (err) {
-      console.error(err);
-    }
+    // 🚀 Streamlined: Triggers TanStack Query's synchronous cache pipeline natively
+    onSave(trimmedTitle, description.trim());
+    setTitle('');
+    setDescription('');
+    setError(null);
   };
 
   const handleClose = () => {
     if (isSaving) return;
     setTitle('');
     setDescription('');
-    setError(null); // Clean error state on drop closure
+    setError(null);
     onClose();
   };
 
@@ -95,8 +90,8 @@ export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoF
             <TextInput
               style={[
                 styles.input, 
-                error ? styles.inputError : null, // 👈 Applies crimson border on validation failure
-                { marginBottom: error ? 8 : 24 } // Tighten base margin if validation subtext displays
+                error ? styles.inputError : null,
+                { marginBottom: error ? 8 : 24 }
               ]}
               placeholder="What needs to be done?"
               placeholderTextColor={Palette.textMuted}
@@ -105,7 +100,6 @@ export function TodoFormModal({ isOpen, todo, onClose, onSave, isSaving }: TodoF
               editable={!isSaving}
             />
             
-            {/* Inline validation feedback component */}
             {error && <Text style={styles.errorText}>{error}</Text>}
 
             <Text style={styles.label}>Description</Text>
@@ -162,6 +156,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
+    marginTop: 24,
     paddingTop: 24,
     paddingBottom: 8,
   },
@@ -198,7 +193,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   inputError: {
-    borderColor: '#DC2626', // Premium matte red outline accentuation
+    borderColor: '#DC2626',
   },
   errorText: {
     ...Typography.fontSans,

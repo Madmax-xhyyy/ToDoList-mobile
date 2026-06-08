@@ -2,7 +2,9 @@ import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { StyleSheet, View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { useTodos, useTodoMutations } from '../../hooks/useTodos';
+
+import { useTodos, useCreateTodo, useUpdateTodo, useDeleteTodo } from '../../hooks/useTodos';
+
 import { TodoItem } from '../../components/TodoItem';
 import { TodoFormModal } from '../../components/TodoForm'; 
 import { TodoDetailsModal } from '../../components/TodoDetailsModal';
@@ -13,7 +15,12 @@ import { Todo } from '../../types/todo';
 
 export default function TodoListScreen() {
   const { data: todos, isLoading } = useTodos();
-  const { updateTodo, deleteTodo, createTodo, isCreating } = useTodoMutations();
+  
+  // Destructuring the new isolated hooks
+  const createTodoMutation = useCreateTodo();
+  const updateTodoMutation = useUpdateTodo();
+  const deleteTodoMutation = useDeleteTodo();
+
   const { filter, setFilter } = useTodoStore();
   
   // UI Visibility States
@@ -25,7 +32,7 @@ export default function TodoListScreen() {
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
 
-  // 🛠️ State Machine Queue: Houses transit tasks waiting for the details modal to unmount
+  // State Machine Queue: Houses transit tasks waiting for the details modal to unmount
   const [pendingEditTodo, setPendingEditTodo] = useState<Todo | null>(null);
 
   const filteredTodos = useMemo(() => {
@@ -42,7 +49,7 @@ export default function TodoListScreen() {
     return todos.filter((t) => !t.isCompleted).length;
   }, [todos]);
 
-  // 🛠️ Lifecycle Watcher: Acts as a native traffic controller
+  // Lifecycle Watcher: Acts as a native traffic controller
   useEffect(() => {
     if (!isDetailsOpen && pendingEditTodo) {
       setSelectedTodo(pendingEditTodo); // Handover the target to form focus context
@@ -51,21 +58,18 @@ export default function TodoListScreen() {
     }
   }, [isDetailsOpen, pendingEditTodo]);
 
-  const handleSaveTodo = async (title: string, description: string) => {
-    try {
-      if (selectedTodo) {
-        await updateTodo({ 
-          id: selectedTodo.id, 
-          data: { title, description: description || undefined } 
-        });
-      } else {
-        await createTodo({ title, description: description || undefined });
-      }
-      setIsFormOpen(false);
-      setSelectedTodo(null);
-    } catch (error) {
-      console.error(error);
+  // 🎨 Cleaned up handleSave using standard sync mutations
+  const handleSaveTodo = (title: string, description: string) => {
+    if (selectedTodo) {
+      updateTodoMutation.mutate({ 
+        id: selectedTodo.id, 
+        data: { title, description: description || undefined } 
+      });
+    } else {
+      createTodoMutation.mutate({ title, description: description || undefined });
     }
+    setIsFormOpen(false);
+    setSelectedTodo(null);
   };
 
   const handleOpenCreateModal = () => {
@@ -89,26 +93,22 @@ export default function TodoListScreen() {
     setIsDeleteOpen(true);
   }, []);
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (todoToDelete) {
-      try {
-        await deleteTodo(todoToDelete.id);
-        setIsDeleteOpen(false);
-        setTodoToDelete(null);
-      } catch (error) {
-        console.error(error);
-      }
+      deleteTodoMutation.mutate(todoToDelete.id);
+      setIsDeleteOpen(false);
+      setTodoToDelete(null);
     }
   };
 
   const renderTodoItem = useCallback(({ item }: { item: Todo }) => (
     <TodoItem
       todo={item}
-      onToggle={() => updateTodo({ id: item.id, data: { isCompleted: !item.isCompleted } })}
+      onToggle={() => updateTodoMutation.mutate({ id: item.id, data: { isCompleted: !item.isCompleted } })}
       onDelete={() => handleTriggerDeletePrompt(item)}
       onPress={() => handleViewDetails(item)}
     />
-  ), [updateTodo, handleTriggerDeletePrompt, handleViewDetails]);
+  ), [updateTodoMutation, handleTriggerDeletePrompt, handleViewDetails]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -181,7 +181,7 @@ export default function TodoListScreen() {
           setSelectedTodo(null);
         }}
         onSave={handleSaveTodo}
-        isSaving={isCreating}
+        isSaving={createTodoMutation.isPending || updateTodoMutation.isPending}
       />
 
       {/* Detail Inspector Modal View Context */}
@@ -190,7 +190,6 @@ export default function TodoListScreen() {
         isOpen={isDetailsOpen}
         onClose={() => {
           setIsDetailsOpen(false);
-          // Protect selectedTodo data context if an active transition queue loop is running
           if (!pendingEditTodo) {
             setSelectedTodo(null);
           }

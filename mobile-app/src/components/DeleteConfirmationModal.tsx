@@ -23,7 +23,6 @@ export function DeleteConfirmationModal({ isOpen, title, onClose, onConfirm }: D
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <Pressable style={styles.alertBox} pointerEvents="auto">
           
-          {/* Minimalist, clean structural spacing without background circle shapes */}
           <View style={styles.iconWrapper}>
             <Ionicons name="trash-outline" size={24} color="#EF4444" />
           </View>
@@ -62,7 +61,7 @@ export function DeleteConfirmationModal({ isOpen, title, onClose, onConfirm }: D
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.25)', // Softer, modern dim overlay
+    backgroundColor: 'rgba(15, 23, 42, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
@@ -72,12 +71,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     width: '100%',
-    maxWidth: 320, // Slightly narrower for better centered symmetry
+    maxWidth: 320, 
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Palette.border,
     elevation: 4,
-    boxShadow: '0px 12px 32px rgba(15, 23, 42, 0.08)', // High-end diffused styling shadow
+    boxShadow: '0px 12px 32px rgba(15, 23, 42, 0.08)', 
   },
   iconWrapper: {
     marginBottom: 14,
